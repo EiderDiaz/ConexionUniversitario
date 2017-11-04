@@ -1,4 +1,4 @@
-package com.example.eider.navigation_drawer.Fragment;
+package com.example.eider.navigation_drawer.Maps;
 
 import android.widget.Toast;
 

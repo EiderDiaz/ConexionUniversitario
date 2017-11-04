@@ -3,7 +3,6 @@ package com.example.eider.navigation_drawer.Maps;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.example.eider.navigation_drawer.Fragment.DataParser;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -70,7 +69,7 @@ private  void  showNearbyPlaces (List<HashMap<String,String>> nearbyPlacesList){
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
         mMap.addMarker(markerOptions);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomBy(13));
+        mMap.animateCamera(CameraUpdateFactory.zoomBy(10));
 
 
     }
