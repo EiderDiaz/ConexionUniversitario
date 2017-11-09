@@ -16,7 +16,6 @@ import com.example.eider.navigation_drawer.R;
 
 
 public class MoviesFragment extends Fragment {
-    ImageButton fab;
     public MoviesFragment() {
         // Required empty public constructor
     }
@@ -25,24 +24,6 @@ public class MoviesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View Rootview = inflater.inflate(R.layout.fragment_movies, container, false);
-        try {
-
-        }
-        catch (Exception e){
-            Toast.makeText(getContext(), e.getMessage()+" error: "+e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-        }
-        fab = (ImageButton) Rootview.findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                fab.setSelected(!fab.isSelected());
-                fab.setImageResource(fab.isSelected() ? R.drawable.animate_plus :R.drawable.animate_minus);
-                Drawable drawable = fab.getDrawable();
-                if (drawable instanceof Animatable){
-                    ((Animatable)drawable).start();
-                }
-            }
-        });
         return Rootview;
     }
 }

@@ -17,7 +17,7 @@
     <application
         android:allowBackup="true"
         android:icon="@drawable/conexionuniversitariologo"
-        android:label="@string/ConexionUniversitario"
+        android:label="@string/app_name"
         android:roundIcon="@drawable/conexionuniversitariologo"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
