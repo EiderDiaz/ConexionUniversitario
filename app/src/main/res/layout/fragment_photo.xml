@@ -10,8 +10,7 @@
        android:id="@+id/appbarlayout"
        android:layout_width="match_parent"
        android:layout_height="200dp"
-       android:theme="@style/AppTheme.AppBarOverlay"
-       >
+       android:theme="@style/AppTheme.AppBarOverlay">
            <android.support.design.widget.CollapsingToolbarLayout
                android:id="@+id/collapToolbar"
                app:layout_scrollFlags="scroll|exitUntilCollapsed"

@@ -35,6 +35,8 @@ dependencies {
     compile 'com.weiwangcn.betterspinner:library-material:1.1.0'
     compile 'com.github.florent37:singledateandtimepicker:1.2.2'
     compile 'com.mobsandgeeks:android-saripaar:2.0.3'
-
+    compile 'com.google.code.gson:gson:2.6.2'
+    compile 'com.squareup.retrofit2:retrofit:2.0.2'
+    compile 'com.squareup.retrofit2:converter-gson:2.0.2'
     testCompile 'junit:junit:4.12'
 }
