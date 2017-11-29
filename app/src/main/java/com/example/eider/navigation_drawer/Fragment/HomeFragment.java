@@ -5,12 +5,18 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,13 +28,20 @@ import android.widget.Toast;
 
 import com.example.eider.navigation_drawer.R;
 import com.github.florent37.singledateandtimepicker.SingleDateAndTimePicker;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.mobsandgeeks.saripaar.ValidationError;
 import com.mobsandgeeks.saripaar.Validator;
@@ -36,14 +49,22 @@ import com.mobsandgeeks.saripaar.annotation.Length;
 import com.mobsandgeeks.saripaar.annotation.NotEmpty;
 import com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
-public class HomeFragment extends Fragment  implements Validator.ValidationListener{
-    MapView mMapView;
+public class HomeFragment extends Fragment implements Validator.ValidationListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+    // MapView mMapView;
     private GoogleMap googleMap;
+    private GoogleApiClient client;
+    private Location lastlocation;
+    private LocationRequest locationRequest;
+    private Marker currentLocationMarker;
+
     private Button boton_fecha;
+
 
     @NotEmpty(message = "debes de llenar este campo")
     MaterialBetterSpinner spinner_publicar_como;
@@ -54,14 +75,16 @@ public class HomeFragment extends Fragment  implements Validator.ValidationListe
     @NotEmpty(message = "debes de llenar este campo")
     MaterialBetterSpinner spinner_plazas_disponibles;
 
+    public static final int PERMISSION_REQUEST_LOCATION_CODE = 99;
+
     String Fechayhora;
 
     Validator validator;
-    ArrayList<String> ListaTipoDeUsuario= new ArrayList<String>() {{
+    ArrayList<String> ListaTipoDeUsuario = new ArrayList<String>() {{
         add("Conductor");
         add("Pasajero");
     }};
-    ArrayList<String> ListaPlazasDisponibles= new ArrayList<String>() {{
+    ArrayList<String> ListaPlazasDisponibles = new ArrayList<String>() {{
         add("1");
         add("2");
         add("3");
@@ -69,7 +92,7 @@ public class HomeFragment extends Fragment  implements Validator.ValidationListe
         add("5");
         add("6");
     }};
-    
+
     public HomeFragment() {
         // Required empty public constructor
     }
@@ -78,40 +101,22 @@ public class HomeFragment extends Fragment  implements Validator.ValidationListe
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View Rootview = inflater.inflate(R.layout.fragment_home, container, false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            CheckLocationPermission();
+        }
         boton_fecha = (Button) Rootview.findViewById(R.id.boton_modal_fecha);
-       cargar_Inputs_y_Spinners(Rootview);
+        cargar_Inputs_y_Spinners(Rootview);
         try {
-            mMapView = (MapView) Rootview.findViewById(R.id.mapView);
-            mMapView.onCreate(savedInstanceState);
-            mMapView.onResume();
-            MapsInitializer.initialize(getActivity().getApplicationContext());
-
-            mMapView.getMapAsync(new OnMapReadyCallback() {
+            SupportMapFragment mapFragment = (SupportMapFragment) this.getChildFragmentManager().findFragmentById(R.id.map);
+            mapFragment.getMapAsync(this);
+            boton_fecha.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onMapReady(GoogleMap mMap) {
-                    googleMap = mMap;
-
-                    // For showing a move to my location button
-                    if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                        googleMap.setMyLocationEnabled(true);
-                    }
-                    LatLng sydney = new LatLng(25.8085, -108.9815);
-                    googleMap.addMarker(new MarkerOptions().position(sydney).title("Marker Title").snippet("Marker Description"));
-                    // For zooming automatically to the location of the marker
-                    CameraPosition cameraPosition = new CameraPosition.Builder().target(sydney).zoom(15).build();
-                    googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                public void onClick(View v) {
+                    showChangeLangDialog();
                 }
             });
-
-            boton_fecha.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showChangeLangDialog();
-            }
-        });
-        }
-        catch (Exception e){
-            Toast.makeText(getContext(), e.getLocalizedMessage()+" error: "+e.getMessage(), Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(getContext(), e.getLocalizedMessage() + " error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
 
         return Rootview;
@@ -122,13 +127,10 @@ public class HomeFragment extends Fragment  implements Validator.ValidationListe
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, ListaTipoDeUsuario);
         spinner_publicar_como = (MaterialBetterSpinner) view.findViewById(R.id.Spiner_piloto_o_pasajero);
         spinner_publicar_como.setAdapter(arrayAdapter);
-
-
         //plazas spiner
         ArrayAdapter<String> arrayAdapter2 = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, ListaPlazasDisponibles);
         spinner_plazas_disponibles = (MaterialBetterSpinner) view.findViewById(R.id.Spinner_plazas_disponibles);
         spinner_plazas_disponibles.setAdapter(arrayAdapter2);
-
         //origen
         input_origen = (EditText) view.findViewById(R.id.input_origen);
         //destino
@@ -153,44 +155,148 @@ public class HomeFragment extends Fragment  implements Validator.ValidationListe
         dialogBuilder.setMessage("Selecciona la fecha y hora ");
         dialogBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                Toast.makeText(getContext(), "Fecha selecionada: "+Fechayhora, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Fecha selecionada: " + Fechayhora, Toast.LENGTH_SHORT).show();
             }
         });
         AlertDialog b = dialogBuilder.create();
         b.show();
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        mMapView.onResume();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mMapView.onPause();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mMapView.onDestroy();
-    }
-
-    @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        mMapView.onLowMemory();
-    }
 
     @Override
     public void onValidationSucceeded() {
-        
+
     }
 
     @Override
     public void onValidationFailed(List<ValidationError> errors) {
 
     }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        locationRequest = new LocationRequest();
+        locationRequest.setInterval(1000);
+        locationRequest.setFastestInterval(1000);
+        locationRequest.setPriority(locationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        if (ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(client, locationRequest, this);
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        lastlocation = location;
+        if (currentLocationMarker != null) {
+            currentLocationMarker.remove();
+        }
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+       /* MarkerOptions markerOptions= new MarkerOptions();
+        markerOptions.position(latLng);
+        markerOptions.title("current location");
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+        currentLocationMarker = mMap.addMarker(markerOptions);*/
+        googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        googleMap.animateCamera(CameraUpdateFactory.zoomTo(12));
+
+        if (client != null) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(client, this);
+        }
+
+    }
+
+    public Boolean CheckLocationPermission() {
+
+        if (ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(getContext(),android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_LOCATION_CODE);
+            return false;
+        } else return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_LOCATION_CODE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        if (client == null) {
+                            buildGoogleApiClient();
+                        }
+                        googleMap.setMyLocationEnabled(true);
+                    }
+                } else {
+                    Toast.makeText(getContext(), "Permision denied", Toast.LENGTH_SHORT).show();
+                }
+                return;
+        }
+    }
+
+    @Override
+    public void onMapReady(final GoogleMap googleMap) {
+        this.googleMap = googleMap;
+        // For showing a move to my location button
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            buildGoogleApiClient();
+            this.googleMap.setMyLocationEnabled(true);
+            Toast.makeText(getContext(), "no", Toast.LENGTH_SHORT).show();
+        }
+
+
+        this.googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                googleMap.clear();
+                MarkerOptions marker = new MarkerOptions().position(
+                        new LatLng(latLng.latitude, latLng.longitude)).title("New Marker");
+                googleMap.addMarker(marker);
+                // TODO: 13/11/2017 conversion de coordenadas a ciudad o localidad
+                Geocoder gcd = new Geocoder(getContext(), Locale.getDefault());
+                List<Address> addresses;
+                String cityName="";
+                try {
+                    addresses = gcd.getFromLocation(latLng.latitude, latLng.longitude, 1);
+                    if (addresses.size() > 0)
+                        cityName = addresses.get(0).getLocality();
+                } catch (IOException e) {
+                    Toast.makeText(getContext(),"error: "+e.getMessage(), Toast.LENGTH_SHORT).show();;
+                }
+                Toast.makeText(getContext(), "LATITUD :"+latLng.latitude+", LONGITUD :"+latLng.longitude+"\nCIUDAD:"+cityName, Toast.LENGTH_SHORT).show();
+                //showChangeLangDialog(String.valueOf(latLng.latitude),String.valueOf(latLng.longitude),cityName);
+
+            }
+        });
+
+           /* LatLng sydney = new LatLng(25.8085, -108.9815);
+            this.googleMap.addMarker(new MarkerOptions().position(sydney).title("Marker Title").snippet("Marker Description"));
+            // For zooming automatically to the location of the marker
+            CameraPosition cameraPosition = new CameraPosition.Builder().target(sydney).zoom(15).build();
+            this.googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));*/
+        }
+
+
+
+
+    protected synchronized void buildGoogleApiClient() {
+        client = new GoogleApiClient.Builder(getContext())
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+
+        client.connect();
+
+
+    }
+
 }

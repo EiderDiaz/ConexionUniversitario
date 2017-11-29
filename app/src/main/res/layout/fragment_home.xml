@@ -105,9 +105,10 @@
 
     </com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner>
 
-    <com.google.android.gms.maps.MapView
+    <fragment
+        android:name="com.google.android.gms.maps.SupportMapFragment"
         xmlns:map="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/mapView"
+        android:id="@+id/map"
         android:layout_width="352dp"
         android:layout_height="218dp"
         android:layout_alignParentBottom="true"
