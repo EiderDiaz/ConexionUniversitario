@@ -30,6 +30,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.eider.navigation_drawer.Maps.GetNearbyPlacesData;
 import com.example.eider.navigation_drawer.R;
 import com.github.florent37.singledateandtimepicker.SingleDateAndTimePicker;
 import com.google.android.gms.common.ConnectionResult;
@@ -60,7 +61,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class HomeFragment extends Fragment implements Validator.ValidationListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class HomeFragment extends Fragment implements Validator.ValidationListener,
+        OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener, LocationListener
+        ,GoogleMap.OnMarkerClickListener,GoogleMap.OnMarkerDragListener {
     // MapView mMapView;
     private GoogleMap googleMap;
     private GoogleApiClient client;
@@ -71,6 +75,9 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
     private Button boton_fecha;
     private FloatingActionButton fab;
     AlertDialog modalorigen;
+    double end_latitude,end_longitude;
+
+
     // TODO: 29/11/2017 de un principio cargar un tipo de informacion donde despliegue un formulario de mapa para poner la direccion de casa y escuela
     LatLng casa = new LatLng(25.82261, -108.98236);
     LatLng ITLM = new LatLng(25.79869, -108.97675);
@@ -129,10 +136,14 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
         return Rootview;
     }
 
+    //https://maps.googleapis.com/maps/api/geocode/json?latlng=40.714224,-73.961452&location_type=ROOFTOP&result_type=street_address&key=AIzaSyA1qIIpoUyhjTtzim7gBA_6gBO2r6hpuNo
+
 
     private View.OnClickListener clickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            Object dataTranser[] = new Object[2];
+            GetNearbyPlacesData getNearbyPlacesData = new GetNearbyPlacesData(getContext());
             switch (v.getId()) {
                 // TODO: 17/09/2017 cambiar las clases por las que vas a crear despues
                 case R.id.boton_modal_fecha: //si
@@ -155,7 +166,8 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
                     markerOrigen.title("Origen");
                     markerOrigen.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
                     googleMap.addMarker(markerOrigen);
-
+                    input_origen.setText("Casa");
+                    input_destino.setText("Instituo tecnologico de los mochis");
                     MarkerOptions markerDestino= new MarkerOptions();
                     markerDestino.position(ITLM);
                     markerDestino.title("Destino");
@@ -167,8 +179,22 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
 
                     break;
                 case R.id.origen_escuela: //si
+                    googleMap.clear();
                     // TODO: 29/11/2017 tu origen es casa
-                    Toast.makeText(getContext(), "tu origen es escuela", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "tu origen es casa", Toast.LENGTH_SHORT).show();
+                    MarkerOptions markerOrigen2= new MarkerOptions();
+                    markerOrigen2.position(ITLM);
+                    markerOrigen2.title("Origen");
+                    markerOrigen2.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    googleMap.addMarker(markerOrigen2);
+                    input_destino.setText("Casa");
+                    input_origen.setText("Instituo tecnologico de los mochis");
+                    MarkerOptions markerDestino2= new MarkerOptions();
+                    markerDestino2.position(casa);
+                    markerDestino2.title("Destino");
+                    markerDestino2.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                    googleMap.addMarker(markerDestino2);
+                    modalorigen.dismiss();
                     break;
             }
         }
@@ -376,4 +402,23 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
 
     }
 
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        return false;
+    }
+
+    @Override
+    public void onMarkerDragStart(Marker marker) {
+
+    }
+
+    @Override
+    public void onMarkerDrag(Marker marker) {
+
+    }
+
+    @Override
+    public void onMarkerDragEnd(Marker marker) {
+
+    }
 }
