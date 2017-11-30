@@ -4,15 +4,18 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -23,6 +26,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,6 +43,7 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -62,9 +67,13 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
     private Location lastlocation;
     private LocationRequest locationRequest;
     private Marker currentLocationMarker;
-
+    private ImageButton BotonOrigen,BotonDestino;
     private Button boton_fecha;
-
+    private FloatingActionButton fab;
+    AlertDialog modalorigen;
+    // TODO: 29/11/2017 de un principio cargar un tipo de informacion donde despliegue un formulario de mapa para poner la direccion de casa y escuela
+    LatLng casa = new LatLng(25.82261, -108.98236);
+    LatLng ITLM = new LatLng(25.79869, -108.97675);
 
     @NotEmpty(message = "debes de llenar este campo")
     MaterialBetterSpinner spinner_publicar_como;
@@ -93,6 +102,7 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
         add("6");
     }};
 
+
     public HomeFragment() {
         // Required empty public constructor
     }
@@ -104,22 +114,67 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             CheckLocationPermission();
         }
+        fab = (FloatingActionButton) Rootview.findViewById(R.id.fab);
+        fab.setOnClickListener(clickListener);
         boton_fecha = (Button) Rootview.findViewById(R.id.boton_modal_fecha);
         cargar_Inputs_y_Spinners(Rootview);
         try {
             SupportMapFragment mapFragment = (SupportMapFragment) this.getChildFragmentManager().findFragmentById(R.id.map);
             mapFragment.getMapAsync(this);
-            boton_fecha.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    showChangeLangDialog();
-                }
-            });
+            boton_fecha.setOnClickListener(clickListener);
         } catch (Exception e) {
             Toast.makeText(getContext(), e.getLocalizedMessage() + " error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-
+        ModalSeleccionarOrigen();
         return Rootview;
+    }
+
+
+    private View.OnClickListener clickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            switch (v.getId()) {
+                // TODO: 17/09/2017 cambiar las clases por las que vas a crear despues
+                case R.id.boton_modal_fecha: //si
+                    showChangeLangDialog();
+                    break;
+                case R.id.fab: //si
+                    if (input_origen.getText().toString().equals("")) {
+                        ModalSeleccionarOrigen();
+                    }
+                    else{
+                        ModalVerificarDatosCorrectos();
+                    }
+                    break;
+                case R.id.origen_casa: //si
+                    googleMap.clear();
+                    // TODO: 29/11/2017 tu origen es casa
+                    Toast.makeText(getContext(), "tu origen es casa", Toast.LENGTH_SHORT).show();
+               MarkerOptions markerOrigen= new MarkerOptions();
+                    markerOrigen.position(casa);
+                    markerOrigen.title("Origen");
+                    markerOrigen.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    googleMap.addMarker(markerOrigen);
+
+                    MarkerOptions markerDestino= new MarkerOptions();
+                    markerDestino.position(ITLM);
+                    markerDestino.title("Destino");
+                    markerDestino.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                    googleMap.addMarker(markerDestino);
+                    modalorigen.dismiss();
+                    // googleMap.moveCamera(CameraUpdateFactory.newLatLng(ITLM));
+                    //googleMap.animateCamera(CameraUpdateFactory.zoomTo(12));
+
+                    break;
+                case R.id.origen_escuela: //si
+                    // TODO: 29/11/2017 tu origen es casa
+                    Toast.makeText(getContext(), "tu origen es escuela", Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+    };
+
+    private void ModalVerificarDatosCorrectos() {
     }
 
     private void cargar_Inputs_y_Spinners(View view) {
@@ -156,10 +211,32 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
         dialogBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
                 Toast.makeText(getContext(), "Fecha selecionada: " + Fechayhora, Toast.LENGTH_SHORT).show();
+
             }
         });
         AlertDialog b = dialogBuilder.create();
         b.show();
+
+    }
+    public  void ModalSeleccionarOrigen() {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getContext());
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        final View dialogView = inflater.inflate(R.layout.origen_dialog, null);
+        dialogBuilder.setView(dialogView);
+
+        dialogBuilder.setTitle("Selecciona Tu Origen");
+        //dialogBuilder.setMessage("Selecciona la fecha y hora ");
+        dialogBuilder.setPositiveButton("Cancelar", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+               // Toast.makeText(getContext(), "Fecha selecionada: " + Fechayhora, Toast.LENGTH_SHORT).show();
+            }
+        });
+        modalorigen = dialogBuilder.create();
+        modalorigen.show();
+        final Button BotonOrigenCasa = (Button) dialogView.findViewById(R.id.origen_casa);
+        final Button BotonOrigenEscuela = (Button) dialogView.findViewById(R.id.origen_escuela);
+        BotonOrigenCasa.setOnClickListener(clickListener);
+        BotonOrigenEscuela.setOnClickListener(clickListener);
     }
 
 

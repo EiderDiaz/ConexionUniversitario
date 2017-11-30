@@ -103,9 +103,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.setMyLocationEnabled(true);
         }
 
-
-
-
         // Add a marker in Sydney and move the camera
       /*  LatLng sydney = new LatLng(25.8226, -108.982);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
@@ -184,7 +181,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         googlePlaceUrl.append("&type="+nearbyplace);
         googlePlaceUrl.append("&sensor=true");
         googlePlaceUrl.append("&key="+"AIzaSyDI70s4aZFHtDmhdGUMmc4Fl1PyFj5z-sc");
-
        /* EditText tf_location = (EditText) findViewById(R.id.editText);
         tf_location.setText(googlePlaceUrl.toString());*/
         return googlePlaceUrl.toString();

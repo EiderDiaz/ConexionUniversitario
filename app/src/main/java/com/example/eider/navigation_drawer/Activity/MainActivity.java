@@ -1,5 +1,7 @@
 package com.example.eider.navigation_drawer.Activity;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -7,6 +9,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -29,6 +32,10 @@ import com.example.eider.navigation_drawer.Fragment.PhotoFragment;
 import com.example.eider.navigation_drawer.Fragment.SettingsFragment;
 import com.example.eider.navigation_drawer.Other.CircleTransform;
 import com.example.eider.navigation_drawer.R;
+import com.github.florent37.singledateandtimepicker.SingleDateAndTimePicker;
+
+import java.util.Date;
+
 public class MainActivity extends AppCompatActivity {
 
     private NavigationView navigationView;
@@ -86,7 +93,9 @@ public class MainActivity extends AppCompatActivity {
         // load toolbar titles from string resources
         activityTitles = getResources().getStringArray(R.array.nav_item_activity_titles);
 
-        fab.setOnClickListener(new View.OnClickListener() {
+        // TODO: 29/11/2017 intentando desaparecer del main activity el fab y ponerlo en el fragmento home
+        fab.setVisibility(View.GONE);
+       /* fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
@@ -94,7 +103,9 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent =  new Intent(getApplicationContext(),MapsActivity.class);
                 startActivity(intent);
             }
-        });
+        });*/
+
+
 
         // load nav menu header data
         loadNavHeader();
