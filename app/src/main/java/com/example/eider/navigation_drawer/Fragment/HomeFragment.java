@@ -208,14 +208,14 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
         float result[] = new float[10];
         Location.distanceBetween(casa.latitude,casa.longitude,ITLM.latitude,ITLM.longitude,result);
         Toast.makeText(getContext(), "distancia :"+result[0], Toast.LENGTH_SHORT).show();
-        Object dataTranser[] = new Object[2];
-     String  url = getDirectionsUrl();
-        GetDirectionsData directionsData = new GetDirectionsData(getContext());
+
+        String url = getDirectionsUrl();
+        GetDirectionsData getDirectionsData = new GetDirectionsData(getContext());
+        Object dataTranser[] = new Object[3];
         dataTranser[0]= googleMap;
         dataTranser[1]= url;
-        //dataTranser[2] = casa;
-       // dataTranser[3]= ITLM;
-        directionsData.execute(dataTranser);
+        dataTranser[2] = casa;
+        getDirectionsData.execute(dataTranser);
     }
 
     private String getDirectionsUrl() {

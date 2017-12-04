@@ -40,6 +40,6 @@ dependencies {
     compile 'com.squareup.retrofit2:retrofit:2.0.2'
     compile 'com.squareup.retrofit2:converter-gson:2.0.2'
     compile 'net.colindodd:gradientlayout:1.2'
-
+    compile 'com.google.maps.android:android-maps-utils:0.5'
     testCompile 'junit:junit:4.12'
 }

@@ -97,15 +97,39 @@ public class DataParser {
         return getPlaces(jsonArray);
     }
 
-    public HashMap<String,String> parseDirections(String JsonData){
+    public String[] parseDirections(String JsonData){
         JSONArray jsonArray = null;
         JSONObject jsonObject;
         try {
             jsonObject = new JSONObject(JsonData);
-            jsonArray = jsonObject.getJSONArray("routes").getJSONObject(0).getJSONArray("legs");
+            jsonArray = jsonObject.getJSONArray("routes").getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONArray("steps");
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return getDuration(jsonArray);
+        return getPaths(jsonArray);
+    }
+
+    public  String[] getPaths(JSONArray googleStepsJson){
+        int count = googleStepsJson.length();
+        String[] polylines = new String[count];
+        for (int i =0;i<count;i++){
+            try {
+                polylines[i]=getPath(googleStepsJson.getJSONObject(i));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return polylines;
+    }
+
+    public String getPath(JSONObject googlePathJson){
+        String polyline ="";
+        try {
+             polyline= googlePathJson.getJSONObject("polyline").getString("points");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return polyline;
+
     }
 }
