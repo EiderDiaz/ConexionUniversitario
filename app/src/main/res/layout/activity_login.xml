@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<net.colindodd.gradientlayout.GradientRelativeLayout
+    xmlns:gl="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    gl:start_color="@color/colorAccent"
+    gl:end_color="@color/colorPrimary"
+    gl:orientation="BL_TR"
+    layout_height="matc">
+
+    <ImageView
+        android:id="@+id/splashlogolux"
+        android:layout_width="251dp"
+        android:layout_height="130dp"
+        android:layout_gravity="center"
+        android:src="@drawable/conexionuniversitariologo"
+        android:layout_marginTop="39dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:fontFamily="sans-serif-condensed"
+        android:id="@+id/splash_text1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="12dp"
+        android:text="LOG IN "
+        android:textAlignment="center"
+        android:textColor="@color/Clouds"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        android:layout_below="@+id/splashlogolux"
+        android:layout_centerHorizontal="true" />
+
+    <com.facebook.login.widget.LoginButton
+        android:id="@+id/login_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="97dp"
+        android:layout_below="@+id/splashlogolux"
+        android:layout_centerHorizontal="true" />
+
+    </net.colindodd.gradientlayout.GradientRelativeLayout>
