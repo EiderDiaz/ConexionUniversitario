@@ -1,5 +1,6 @@
 package com.example.eider.navigation_drawer.Maps;
 
+import android.util.Log;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -16,6 +17,23 @@ import java.util.List;
 
 public class DataParser {
 
+
+    private HashMap <String,String> getDuration(JSONArray googleDirectionsJson){
+        HashMap<String,String> googleDirectionsMap = new HashMap<>();
+        String duration ="";
+        String distance = "";
+        Log.d("Json response:",googleDirectionsJson.toString());
+        try {
+            duration= googleDirectionsJson.getJSONObject(0).getJSONObject("duration").getString("legs");
+            distance= googleDirectionsJson.getJSONObject(0).getJSONObject("distance").getString("legs");
+            googleDirectionsMap.put("duration",duration);
+            googleDirectionsMap.put("distance",distance);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return googleDirectionsMap;
+    }
     private HashMap<String,String>  getPlace(JSONObject googlePlaceJson){
 
         HashMap<String,String> googlePlaceMap = new HashMap<>();
@@ -77,5 +95,17 @@ public class DataParser {
             e.printStackTrace();
         }
         return getPlaces(jsonArray);
+    }
+
+    public HashMap<String,String> parseDirections(String JsonData){
+        JSONArray jsonArray = null;
+        JSONObject jsonObject;
+        try {
+            jsonObject = new JSONObject(JsonData);
+            jsonArray = jsonObject.getJSONArray("routes").getJSONObject(0).getJSONArray("legs");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return getDuration(jsonArray);
     }
 }

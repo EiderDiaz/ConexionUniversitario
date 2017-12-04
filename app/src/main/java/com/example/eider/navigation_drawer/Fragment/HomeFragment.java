@@ -30,6 +30,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.eider.navigation_drawer.Maps.GetDirectionsData;
 import com.example.eider.navigation_drawer.Maps.GetNearbyPlacesData;
 import com.example.eider.navigation_drawer.R;
 import com.github.florent37.singledateandtimepicker.SingleDateAndTimePicker;
@@ -142,8 +143,7 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
     private View.OnClickListener clickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            Object dataTranser[] = new Object[2];
-            GetNearbyPlacesData getNearbyPlacesData = new GetNearbyPlacesData(getContext());
+
             switch (v.getId()) {
                 // TODO: 17/09/2017 cambiar las clases por las que vas a crear despues
                 case R.id.boton_modal_fecha: //si
@@ -201,7 +201,32 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
     };
 
     private void ModalVerificarDatosCorrectos() {
+       /* googleMap.clear();
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(new LatLng(end_latitude,end_longitude));
+        markerOptions.title("Destination");*/
+        float result[] = new float[10];
+        Location.distanceBetween(casa.latitude,casa.longitude,ITLM.latitude,ITLM.longitude,result);
+        Toast.makeText(getContext(), "distancia :"+result[0], Toast.LENGTH_SHORT).show();
+        Object dataTranser[] = new Object[2];
+     String  url = getDirectionsUrl();
+        GetDirectionsData directionsData = new GetDirectionsData(getContext());
+        dataTranser[0]= googleMap;
+        dataTranser[1]= url;
+        //dataTranser[2] = casa;
+       // dataTranser[3]= ITLM;
+        directionsData.execute(dataTranser);
     }
+
+    private String getDirectionsUrl() {
+            StringBuilder GoogeDirections = new StringBuilder("https://maps.googleapis.com/maps/api/directions/json?");
+            GoogeDirections.append("&origin="+casa.latitude+","+casa.longitude);
+        GoogeDirections.append("&destination="+ITLM.latitude+","+ITLM.longitude);
+        GoogeDirections.append("&key="+"AIzaSyCPOLTJhVHpTSZZBHhzB9PIgi_Ws917_0Y");
+
+        return  GoogeDirections.toString();
+    }
+
 
     private void cargar_Inputs_y_Spinners(View view) {
         //tipo de user spiner
@@ -352,11 +377,12 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             buildGoogleApiClient();
             this.googleMap.setMyLocationEnabled(true);
-            Toast.makeText(getContext(), "no", Toast.LENGTH_SHORT).show();
         }
 
 
-        this.googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+      // this.googleMap.setOnMarkerClickListener(this);
+       // this.googleMap.setOnMarkerDragListener(this);
+        /* this.googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
                 googleMap.clear();
@@ -378,7 +404,7 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
                 //showChangeLangDialog(String.valueOf(latLng.latitude),String.valueOf(latLng.longitude),cityName);
 
             }
-        });
+        });*/
 
            /* LatLng sydney = new LatLng(25.8085, -108.9815);
             this.googleMap.addMarker(new MarkerOptions().position(sydney).title("Marker Title").snippet("Marker Description"));
@@ -404,6 +430,7 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
 
     @Override
     public boolean onMarkerClick(Marker marker) {
+        marker.setDraggable(true);
         return false;
     }
 
@@ -419,6 +446,10 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
 
     @Override
     public void onMarkerDragEnd(Marker marker) {
+        end_latitude= marker.getPosition().latitude;
+        end_longitude=marker.getPosition().longitude;
 
     }
+
+    
 }
