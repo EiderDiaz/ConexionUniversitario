@@ -5,6 +5,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import com.example.eider.navigation_drawer.Modelos.Usuario;
+import com.example.eider.navigation_drawer.Other.AdminSQLiteOpenHelper;
 import com.example.eider.navigation_drawer.R;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -79,6 +81,9 @@ public class LoginActivity extends AppCompatActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        AdminSQLiteOpenHelper admin = new AdminSQLiteOpenHelper(getApplicationContext());
+        admin.resetDataBase(getApplicationContext());
+        admin.GuardarDatosSession(new Usuario(firstname,lastname,email,id),getApplicationContext());
         Toast.makeText(this, "nombre:"+firstname+"\napellido:"+lastname+"\nemail:"+email+"\nid:"+id, Toast.LENGTH_SHORT).show();
 
     }

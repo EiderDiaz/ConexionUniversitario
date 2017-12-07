@@ -1,6 +1,7 @@
 package com.example.eider.navigation_drawer.Activity;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -30,6 +31,8 @@ import com.example.eider.navigation_drawer.Fragment.MoviesFragment;
 import com.example.eider.navigation_drawer.Fragment.NotificationsFragment;
 import com.example.eider.navigation_drawer.Fragment.PhotoFragment;
 import com.example.eider.navigation_drawer.Fragment.SettingsFragment;
+import com.example.eider.navigation_drawer.Modelos.Usuario;
+import com.example.eider.navigation_drawer.Other.AdminSQLiteOpenHelper;
 import com.example.eider.navigation_drawer.Other.CircleTransform;
 import com.example.eider.navigation_drawer.R;
 import com.github.florent37.singledateandtimepicker.SingleDateAndTimePicker;
@@ -48,8 +51,8 @@ public class MainActivity extends AppCompatActivity {
 
     // urls to load navigation header background image
     // and profile image
-    private static final String urlNavHeaderBg = "https://api.androidhive.info/images/nav-menu-header-bg.jpg";
-    private static final String urlProfileImg = "https://lh3.googleusercontent.com/eCtE_G34M9ygdkmOpYvCag1vBARCmZwnVS6rS5t4JLzJ6QgQSBquM0nuTsCpLhYbKljoyS-txg";
+    private static  String urlNavHeaderBg = "https://api.androidhive.info/images/nav-menu-header-bg.jpg";
+    private static  String urlProfileImg = "https://lh3.googleusercontent.com/eCtE_G34M9ygdkmOpYvCag1vBARCmZwnVS6rS5t4JLzJ6QgQSBquM0nuTsCpLhYbKljoyS-txg";
 
     // index to identify current nav menu item
     public static int navItemIndex = 0;
@@ -68,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     // flag to load home fragment when user presses back key
     private boolean shouldLoadHomeFragOnBackPress = true;
     private Handler mHandler;
-
+    Usuario usuario;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +79,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        AdminSQLiteOpenHelper admin = new AdminSQLiteOpenHelper(getApplicationContext());
+        usuario = admin.consultarDatoSession(getApplicationContext());
+        urlProfileImg= "https://graph.facebook.com/" +usuario.getFb_id() + "/picture?type=large";
 
         mHandler = new Handler();
 
@@ -127,8 +133,9 @@ public class MainActivity extends AppCompatActivity {
      */
     private void loadNavHeader() {
         // name, website
-        txtName.setText("Ravi Tamada");
-        txtWebsite.setText("www.androidhive.info");
+
+        txtName.setText(usuario.getNombre()+" "+usuario.getApellido());
+        txtWebsite.setText(usuario.getCorreo());
 
         // loading header background image
         Glide.with(this).load(urlNavHeaderBg)

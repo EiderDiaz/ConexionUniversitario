@@ -20,9 +20,13 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,9 +34,13 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.eider.navigation_drawer.Activity.rutaBeta;
+import com.example.eider.navigation_drawer.Adapters.Ruta_Econtradas_Adapter;
 import com.example.eider.navigation_drawer.Maps.GetDirectionsData;
 import com.example.eider.navigation_drawer.Maps.GetNearbyPlacesData;
+import com.example.eider.navigation_drawer.Other.RecyclerItemClickListener;
 import com.example.eider.navigation_drawer.R;
+import com.example.eider.navigation_drawer.REST.ApiInterface;
 import com.github.florent37.singledateandtimepicker.SingleDateAndTimePicker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -58,9 +66,17 @@ import com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class HomeFragment extends Fragment implements Validator.ValidationListener,
         OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
@@ -77,7 +93,8 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
     private FloatingActionButton fab;
     AlertDialog modalorigen;
     double end_latitude,end_longitude;
-
+    Calendar calendar ;
+    int Year, Month, Day ;
 
     // TODO: 29/11/2017 de un principio cargar un tipo de informacion donde despliegue un formulario de mapa para poner la direccion de casa y escuela
     LatLng casa = new LatLng(25.82261, -108.98236);
@@ -109,7 +126,8 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
         add("5");
         add("6");
     }};
-
+    String numerodeplazasseleccionado ="";
+    String publicarComo="";
 
     public HomeFragment() {
         // Required empty public constructor
@@ -216,6 +234,88 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
         dataTranser[1]= url;
         dataTranser[2] = casa;
         getDirectionsData.execute(dataTranser);
+        if (publicarComo.equals("Conductor")) {
+            PublicarRuta("" + result[0]);
+        }
+        else {
+            BuscarRuta();
+        }
+
+
+    }
+
+
+    private void BuscarRuta() {
+
+        try {
+            Retrofit.Builder builder = new Retrofit.Builder()
+                    .baseUrl("http://104.154.81.114/")
+                    .addConverterFactory(GsonConverterFactory.create());
+
+            Retrofit retrofit = builder.build();
+            ApiInterface apiInterface= retrofit.create(ApiInterface.class);
+
+            Call<List<rutaBeta>> call= apiInterface.BuscarRuta();
+            call.enqueue(new Callback<List<rutaBeta>>() {
+                @Override
+                public void onResponse(Call<List<rutaBeta>> call, Response<List<rutaBeta>> response) {
+                    List<rutaBeta> listaRutas = response.body();
+                        for (rutaBeta rutaBeta:listaRutas){
+                            Toast.makeText(getContext(), rutaBeta.getDistancia(), Toast.LENGTH_SHORT).show();
+                        }
+                        if (listaRutas.size()>0){
+                            SeleccionarrutaEncontrada(listaRutas);
+                        }
+                }
+
+                @Override
+                public void onFailure(Call<List<rutaBeta>> call, Throwable t) {
+                    Toast.makeText(getContext(), ":Ccccccccccccccccccccc"+t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+
+        }catch (Exception e){
+            Toast.makeText(getContext(), "error en el guardado de drone: "+e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void PublicarRuta(String Distancia) {
+        try {
+            Retrofit.Builder builder = new Retrofit.Builder()
+                    .baseUrl("http://104.154.81.114/")
+                    .addConverterFactory(GsonConverterFactory.create());
+
+            Retrofit retrofit = builder.build();
+            ApiInterface apiInterface= retrofit.create(ApiInterface.class);
+            String origen = casa.latitude+","+casa.longitude;
+            String destino= ITLM.latitude+","+ITLM.longitude;
+            String  fecha =  Fechayhora;
+            String plazas = numerodeplazasseleccionado;
+
+            String distancia = Distancia;
+            calendar = Calendar.getInstance();
+            Year = calendar.get(Calendar.YEAR);
+            String[] formatearfecha = fecha.split("\\.");
+            formatearfecha[1]= formatearfecha[1]+" "+Year;
+            String fechafinal= formatearfecha[0]+formatearfecha[1]+formatearfecha[2];
+            Toast.makeText(getContext(), plazas, Toast.LENGTH_SHORT).show();
+
+            Call<ResponseBody> call= apiInterface.PublicarRuta("10215159197561640",origen,destino,fechafinal,plazas,"2709.0337");
+            call.enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    Toast.makeText(getContext(), "agregado exitosamente", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Toast.makeText(getContext(), "error :C "+t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+
+        }catch (Exception e){
+            Toast.makeText(getContext(), "error en el guardado de drone: "+e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private String getDirectionsUrl() {
@@ -233,10 +333,24 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, ListaTipoDeUsuario);
         spinner_publicar_como = (MaterialBetterSpinner) view.findViewById(R.id.Spiner_piloto_o_pasajero);
         spinner_publicar_como.setAdapter(arrayAdapter);
+        spinner_publicar_como.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                publicarComo = ListaTipoDeUsuario.get(i);
+            }
+        });
         //plazas spiner
         ArrayAdapter<String> arrayAdapter2 = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, ListaPlazasDisponibles);
         spinner_plazas_disponibles = (MaterialBetterSpinner) view.findViewById(R.id.Spinner_plazas_disponibles);
         spinner_plazas_disponibles.setAdapter(arrayAdapter2);
+        spinner_plazas_disponibles.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                numerodeplazasseleccionado = ListaPlazasDisponibles.get(position);
+                Toast.makeText(getContext(), numerodeplazasseleccionado, Toast.LENGTH_SHORT).show();
+
+            }
+        });
         //origen
         input_origen = (EditText) view.findViewById(R.id.input_origen);
         //destino
@@ -269,6 +383,32 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
         b.show();
 
     }
+    public void SeleccionarrutaEncontrada(List<rutaBeta> rutaBetaList) {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getContext());
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        final View dialogView = inflater.inflate(R.layout.selecciona_ruta_dialog, null);
+        dialogBuilder.setView(dialogView);
+        final  RecyclerView recyclerView = (RecyclerView) dialogView.findViewById(R.id.recycler_view_rutas_encontradas);
+        Ruta_Econtradas_Adapter adapter =new Ruta_Econtradas_Adapter(rutaBetaList);
+        recyclerView.setAdapter(adapter);
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(getContext(), new RecyclerItemClickListener.OnItemClickListener() {
+                    public void onItemClick(View view, int position) {
+                        Toast.makeText(getContext(), "te has agregado a esta ruta se le notificara al conductor", Toast.LENGTH_SHORT).show();
+                    }
+                })
+        );
+        //dialogBuilder.setTitle("Fecha y Hora");
+       // dialogBuilder.setMessage("Selecciona la ruta");
+       
+        AlertDialog b = dialogBuilder.create();
+        b.show();
+
+    }
+
     public  void ModalSeleccionarOrigen() {
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getContext());
         LayoutInflater inflater = getActivity().getLayoutInflater();
