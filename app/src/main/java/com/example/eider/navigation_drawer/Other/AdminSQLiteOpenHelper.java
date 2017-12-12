@@ -67,7 +67,7 @@ public class AdminSQLiteOpenHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(nombre,usuario.getNombre());
-        values.put(apellido,usuario.getNombre());
+        values.put(apellido,usuario.getApellido());
         values.put(correo,usuario.getCorreo());
         values.put(fb_id,usuario.getFb_id());
         long err =db.insert(tblsesion,null,values);

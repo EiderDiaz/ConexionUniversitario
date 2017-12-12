@@ -214,6 +214,9 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
                     googleMap.addMarker(markerDestino2);
                     modalorigen.dismiss();
                     break;
+                case R.id.cancelar_origen_dialog: //si
+                    modalorigen.dismiss();
+                    break;
             }
         }
     };
@@ -415,17 +418,14 @@ public class HomeFragment extends Fragment implements Validator.ValidationListen
         final View dialogView = inflater.inflate(R.layout.origen_dialog, null);
         dialogBuilder.setView(dialogView);
 
-        dialogBuilder.setTitle("Selecciona Tu Origen");
+        //dialogBuilder.setTitle("Selecciona Tu Origen");
         //dialogBuilder.setMessage("Selecciona la fecha y hora ");
-        dialogBuilder.setPositiveButton("Cancelar", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-               // Toast.makeText(getContext(), "Fecha selecionada: " + Fechayhora, Toast.LENGTH_SHORT).show();
-            }
-        });
         modalorigen = dialogBuilder.create();
         modalorigen.show();
+        final TextView calcelarDialog = (TextView) dialogView.findViewById(R.id.cancelar_origen_dialog);
         final Button BotonOrigenCasa = (Button) dialogView.findViewById(R.id.origen_casa);
         final Button BotonOrigenEscuela = (Button) dialogView.findViewById(R.id.origen_escuela);
+        calcelarDialog.setOnClickListener(clickListener);
         BotonOrigenCasa.setOnClickListener(clickListener);
         BotonOrigenEscuela.setOnClickListener(clickListener);
     }
